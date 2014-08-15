@@ -60,7 +60,7 @@ func (c *jsonContext) stringLen() int {
 func (c *jsonContext) writeStringToBuffer(buf *bytes.Buffer) {
 	if c.tail != nil {
 		c.tail.writeStringToBuffer(buf)
-		buf.WriteString(".")
+		buf.WriteString("/")
 	}
 
 	buf.WriteString(c.head)

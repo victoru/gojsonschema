@@ -69,8 +69,8 @@ const (
 	STRING_PROPERTIES                 = "properties"
 	STRING_DEPENDENCY                 = "dependency"
 
-	CONTEXT_ROOT         = "(root)"
-	ROOT_SCHEMA_PROPERTY = "(root)"
+	CONTEXT_ROOT         = "#"
+	ROOT_SCHEMA_PROPERTY = "#"
 )
 
 const (
