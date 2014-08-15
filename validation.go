@@ -401,7 +401,7 @@ func (v *jsonSchema) validateObject(currentSchema *jsonSchema, value map[string]
 		if ok {
 			result.incrementScore()
 		} else {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_X_IS_MISSING_AND_REQUIRED, fmt.Sprintf(`"%s" property`, requiredProperty)))
+			result.addError(consJsonContext(requiredProperty, context), value, fmt.Sprintf(ERROR_MESSAGE_X_IS_MISSING_AND_REQUIRED, fmt.Sprintf(`"%s" property`, requiredProperty)))
 		}
 	}
 
