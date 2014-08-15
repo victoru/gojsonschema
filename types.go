@@ -123,6 +123,10 @@ const (
 	TYPE_STRING  = `string`
 )
 
+// EmptyProperty is represents the lack of input for a property value and is
+// explicitly set by a validator.
+var EmptyProperty [0]byte
+
 var JSON_TYPES []string
 var SCHEMA_TYPES []string
 

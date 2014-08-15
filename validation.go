@@ -401,7 +401,7 @@ func (v *jsonSchema) validateObject(currentSchema *jsonSchema, value map[string]
 		if ok {
 			result.incrementScore()
 		} else {
-			result.addError(consJsonContext(requiredProperty, context), value, fmt.Sprintf(ERROR_MESSAGE_X_IS_MISSING_AND_REQUIRED, fmt.Sprintf(`"%s" property`, requiredProperty)))
+			result.addError(consJsonContext(requiredProperty, context), EmptyProperty, fmt.Sprintf(ERROR_MESSAGE_X_IS_MISSING_AND_REQUIRED, fmt.Sprintf(`"%s" property`, requiredProperty)))
 		}
 	}
 
@@ -608,6 +608,10 @@ func (v ValidationError) String() string {
 	if v.Value == nil {
 		valueString = TYPE_NULL
 	} else {
+		if v.Value == EmptyProperty {
+			return v.Description
+		}
+
 		if vs, err := marshalToJsonString(v.Value); err == nil {
 			if vs == nil {
 				valueString = TYPE_NULL
