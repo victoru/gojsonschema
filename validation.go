@@ -617,7 +617,7 @@ func (v ValidationError) String() string {
 		}
 	}
 
-	return fmt.Sprintf("%s : %s, given %s", v.Context, v.Description, valueString)
+	return fmt.Sprintf("%s, given %s", v.Description, valueString)
 }
 
 type ValidationResult struct {
