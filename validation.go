@@ -427,13 +427,13 @@ func (v *jsonSchema) validateObject(currentSchema *jsonSchema, value map[string]
 					if found {
 
 						if pp_has && !pp_match {
-							result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_ADDITIONAL_PROPERTY_NOT_ALLOWED, pk))
+							result.addError(consJsonContext(pk, context), EmptyProperty, fmt.Sprintf(ERROR_MESSAGE_ADDITIONAL_PROPERTY_NOT_ALLOWED, pk))
 						}
 
 					} else {
 
 						if !pp_has || !pp_match {
-							result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_ADDITIONAL_PROPERTY_NOT_ALLOWED, pk))
+							result.addError(consJsonContext(pk, context), EmptyProperty, fmt.Sprintf(ERROR_MESSAGE_ADDITIONAL_PROPERTY_NOT_ALLOWED, pk))
 						}
 
 					}
@@ -480,7 +480,7 @@ func (v *jsonSchema) validateObject(currentSchema *jsonSchema, value map[string]
 
 			if pp_has && !pp_match {
 
-				result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_INVALID_PATTERN_PROPERTY, pk, currentSchema.PatternPropertiesString()))
+				result.addError(consJsonContext(pk, context), value, fmt.Sprintf(ERROR_MESSAGE_INVALID_PATTERN_PROPERTY, pk, currentSchema.PatternPropertiesString()))
 			}
 
 		}
