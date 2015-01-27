@@ -1,4 +1,4 @@
-// Copyright 2013 sigu-399 ( https://github.com/sigu-399 )
+// Copyright 2015 xeipuuv ( https://github.com/xeipuuv )
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// author           sigu-399
-// author-github    https://github.com/sigu-399
-// author-mail      sigu.399@gmail.com
+// author           xeipuuv
+// author-github    https://github.com/xeipuuv
+// author-mail      xeipuuv@gmail.com
 //
 // repository-name  gojsonschema
 // repository-desc  An implementation of JSON Schema, based on IETF's draft v4 - Go language.
 //
-// description      (Unit) Tests for the whole package.
+// description      (Unit) Tests for schema validation.
 //
 // created          16-06-2013
 
@@ -314,24 +314,18 @@ func TestJsonSchemaTestSuite(t *testing.T) {
 
 		fmt.Printf("Test (%d) | %s :: %s\n", testJsonIndex, testJson["phase"], testJson["test"])
 
-		// get schema
-		schemaDocument, err := NewJsonSchemaDocument("file://" + testwd + "/" + testJson["schema"])
-		if err != nil {
-			t.Errorf("Cound not parse schema : %s\n", err.Error())
-		}
-
-		// get data
-		dataDocument, err := GetFileJson(testwd + "/" + testJson["data"])
-		if err != nil {
-			t.Errorf("Could not get test data : %s\n", err.Error())
-		}
+		schemaLoader := NewReferenceLoader("file://" + testwd + "/" + testJson["schema"])
+		documentLoader := NewReferenceLoader("file://" + testwd + "/" + testJson["data"])
 
 		// validate
-		validationResult := schemaDocument.Validate(dataDocument)
-		givenValid := validationResult.Valid()
+		result, err := Validate(schemaLoader, documentLoader)
+		if err != nil {
+			t.Errorf("Error (%s)\n", err.Error())
+		}
+		givenValid := result.Valid()
 
 		if displayErrorMessages {
-			for vErrI, vErr := range validationResult.Errors() {
+			for vErrI, vErr := range result.Errors() {
 				fmt.Printf("  Error (%d) | %s\n", vErrI, vErr)
 			}
 		}

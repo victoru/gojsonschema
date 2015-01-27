@@ -1,17 +1,31 @@
+[![Build Status](https://travis-ci.org/xeipuuv/gojsonschema.svg)](https://travis-ci.org/xeipuuv/gojsonschema)
+
 # gojsonschema
 
 ## Description
+
 An implementation of JSON Schema, based on IETF's draft v4 - Go language
 
-## Status
+References :
 
-One feature is missing : id(s) as scope for references
+* http://json-schema.org
+* http://json-schema.org/latest/json-schema-core.html
+* http://json-schema.org/latest/json-schema-validation.html
 
-Test results : Passed 99.20% of Json Schema Test Suite ( 246 / 248 )
+## Installation
+
+```
+go get github.com/xeipuuv/gojsonschema
+```
+
+Dependencies :
+* https://github.com/xeipuuv/gojsonpointer
+* https://github.com/xeipuuv/gojsonreference
+* https://github.com/stretchr/testify/assert
 
 ## Usage 
 
-### Quick example
+### Example
 
 ```go
 
@@ -19,32 +33,23 @@ package main
 
 import (
     "fmt"
-    "github.com/sigu-399/gojsonschema"
+    "github.com/xeipuuv/gojsonschema"
 )
 
 func main() {
 
-    // Loads a schema remotely
-    schemaDocument, err := gojsonschema.NewJsonSchemaDocument("http://host/schema.json")
+    schemaLoader := gojsonschema.NewReferenceLoader("file:///home/me/schema.json")
+    documentLoader := gojsonschema.NewReferenceLoader("file:///home/me/document.json")
+
+    result, err := gojsonschema.Validate(schemaLoader, documentLoader)
     if err != nil {
         panic(err.Error())
     }
 
-    // Loads the JSON to validate from a local file
-    jsonDocument, err := gojsonschema.GetFileJson("/home/me/data.json")
-    if err != nil {
-        panic(err.Error())
-    }
-
-	// Try to validate the Json against the schema
-    result := schemaDocument.Validate(jsonDocument)
-
-	// Deal with result
     if result.Valid() {
         fmt.Printf("The document is valid\n")
     } else {
         fmt.Printf("The document is not valid. see errors :\n")
-        // Loop through errors
         for _, desc := range result.Errors() {
             fmt.Printf("- %s\n", desc)
         }
@@ -55,102 +60,92 @@ func main() {
 
 ```
 
-#### Loading a schema
+#### Loaders
 
-Schemas can be loaded remotely from a Http Url:
+There are various ways to load your JSON data.
+In order to load your schemas and documents, 
+first declare an appropriate loader :
+
+* Web / HTTP, using a reference :
 
 ```go
-    schemaDocument, err := gojsonschema.NewJsonSchemaDocument("http://myhost/schema.json")
+loader := gojsonschema.NewReferenceLoader("http://www.some_host.com/schema.json")
 ```
 
-Or a local file, using the file URI scheme:
+* Local file, using a reference :
 
 ```go
-	schemaDocument, err := gojsonschema.NewJsonSchemaDocument("file:///home/me/schema.json")
+loader := gojsonschema.NewReferenceLoader("file:///home/me/schema.json")
 ```
 
-You may also load the schema from within your code, using a map[string]interface{} variable.
+References use the URI scheme, the prefix (file://) and a full path to the file are required.
 
-Note that schemas loaded that way are subject to limitations, they need to be standalone schemas; 
-Which means references to local files and/or remote files within this schema will not work.
+* JSON strings :
 
 ```go
-	schemaMap := map[string]interface{}{
-		"type": "string"}
-
-	schemaDocument, err := gojsonschema.NewJsonSchemaDocument(schemaMap)
+loader := gojsonschema.NewStringLoader(`{"type": "string"}`)
 ```
 
-#### Loading a JSON
-
-The library virtually accepts any Json since it uses reflection to validate against the schema.
-
-You may use and combine go types like 
-* string (JSON string)
-* bool (JSON boolean)
-* float64 (JSON number)
-* nil (JSON null)
-* slice (JSON array)
-* map[string]interface{} (JSON object)
-
-You may declare your Json from within your code:
+* Custom Go types :
 
 ```go
-	jsonDocument := map[string]interface{}{
-		"name": "john"}
+m := map[string]interface{}{"type": "string"}
+loader := gojsonschema.NewGoLoader(m)
 ```
 
-Helper functions are also available to load from a Http URL:
+And
 
 ```go
-    jsonDocument, err := gojsonschema.GetHttpJson("http://host/data.json")
-```
+type Root struct {
+	Users []User `json:"users"`
+}
 
-Or a local file:
+type User struct {
+	Name string `json:"name"`
+}
 
-```go
-	jsonDocument, err := gojsonschema.GetFileJson("/home/me/data.json")
+...
+
+data := Root{}
+data.Users = append(data.Users, User{"John"})
+data.Users = append(data.Users, User{"Sophia"})
+data.Users = append(data.Users, User{"Bill"})
+
+loader := gojsonschema.NewGoLoader(data)
 ```
 
 #### Validation
 
-Once the schema and the Json to validate are loaded, validation phase becomes easy:
+Once the loaders are set, validation is easy :
 
 ```go
-	result := schemaDocument.Validate(jsonDocument)
+result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 ```
 
-Check the result validity with:
+Alternatively, you might want to load a schema only once and process to multiple validations :
 
 ```go
-	if result.Valid() {
-		// Your Json is valid
-	}
+schema, err := gojsonschema.NewSchema(schemaLoader)
+...
+result1, err := schema.Validate(documentLoader1)
+...
+result2, err := schema.Validate(documentLoader2)
+...
+// etc ...
 ```
 
-If not valid, you can loop through the error messages returned by the validation phase:
+To check the result :
 
 ```go
-	for _, desc := range result.Errors() {
-    	fmt.Printf("Error: %s\n", desc)
-	}
+    if result.Valid() {
+    	fmt.Printf("The document is valid\n")
+    } else {
+        fmt.Printf("The document is not valid. see errors :\n")
+        for _, desc := range result.Errors() {
+            fmt.Printf("- %s\n", desc)
+        }
+    }
 ```
-
-## References
-
-###Website
-http://json-schema.org
-
-###Schema Core
-http://json-schema.org/latest/json-schema-core.html
-
-###Schema Validation
-http://json-schema.org/latest/json-schema-validation.html
-
-## Dependencies
-https://github.com/sigu-399/gojsonpointer
-
-https://github.com/sigu-399/gojsonreference
 
 ## Uses
 

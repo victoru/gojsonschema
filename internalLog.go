@@ -19,44 +19,23 @@
 // repository-name  gojsonschema
 // repository-desc  An implementation of JSON Schema, based on IETF's draft v4 - Go language.
 //
-// description      Contains const types for schema and JSON.
+// description      Very simple log wrapper.
+//					Used for debugging/testing purposes.
 //
-// created          28-02-2013
+// created          01-01-2015
 
 package gojsonschema
 
-const (
-	TYPE_ARRAY   = `array`
-	TYPE_BOOLEAN = `boolean`
-	TYPE_INTEGER = `integer`
-	TYPE_NUMBER  = `number`
-	TYPE_NULL    = `null`
-	TYPE_OBJECT  = `object`
-	TYPE_STRING  = `string`
+import (
+	"log"
 )
 
-// EmptyProperty is represents the lack of input for a property value and is
-// explicitly set by a validator.
-var EmptyProperty [0]byte
+const internalLogEnabled = false
 
-var JSON_TYPES []string
-var SCHEMA_TYPES []string
+func internalLog(format string, v ...interface{}) {
 
-func init() {
-	JSON_TYPES = []string{
-		TYPE_ARRAY,
-		TYPE_BOOLEAN,
-		TYPE_INTEGER,
-		TYPE_NUMBER,
-		TYPE_NULL,
-		TYPE_OBJECT,
-		TYPE_STRING}
+	if internalLogEnabled {
+		log.Printf(format, v...)
+	}
 
-	SCHEMA_TYPES = []string{
-		TYPE_ARRAY,
-		TYPE_BOOLEAN,
-		TYPE_INTEGER,
-		TYPE_NUMBER,
-		TYPE_OBJECT,
-		TYPE_STRING}
 }

@@ -1,4 +1,4 @@
-// Copyright 2013 sigu-399 ( https://github.com/sigu-399 )
+// Copyright 2015 xeipuuv ( https://github.com/xeipuuv )
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// author           sigu-399
-// author-github    https://github.com/sigu-399
-// author-mail      sigu.399@gmail.com
+// author           xeipuuv
+// author-github    https://github.com/xeipuuv
+// author-mail      xeipuuv@gmail.com
 //
 // repository-name  gojsonschema
 // repository-desc  An implementation of JSON Schema, based on IETF's draft v4 - Go language.
@@ -28,7 +28,7 @@ package gojsonschema
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"math"
 	"reflect"
 )
 
@@ -50,22 +50,6 @@ func isStringInSlice(s []string, what string) bool {
 	return false
 }
 
-// Practical when it comes to differentiate a float from an integer since JSON only knows numbers
-// NOTE go's Parse(U)Int funcs accepts 1.0, 45.0 as integers
-func isFloat64AnInteger(n float64) bool {
-	return n == float64(int64(n)) || n == float64(uint64(n))
-}
-
-// formats a number so that it is displayed as the smallest string possible
-func validationErrorFormatNumber(n float64) string {
-
-	if isFloat64AnInteger(n) {
-		return fmt.Sprintf("%d", int64(n))
-	}
-
-	return fmt.Sprintf("%g", n)
-}
-
 func marshalToJsonString(value interface{}) (*string, error) {
 
 	mBytes, err := json.Marshal(value)
@@ -77,10 +61,101 @@ func marshalToJsonString(value interface{}) (*string, error) {
 	return &sBytes, nil
 }
 
-const internalLogEnabled = false
+// same as ECMA Number.MAX_SAFE_INTEGER and Number.MIN_SAFE_INTEGER
+const (
+	max_json_float = float64(1<<53 - 1)  // 9007199254740991.0 	 2^53 - 1
+	min_json_float = -float64(1<<53 - 1) //-9007199254740991.0	-2^53 - 1
+)
 
-func internalLog(message string) {
-	if internalLogEnabled {
-		log.Print(message)
+// allow for integers [-2^53, 2^53-1] inclusive
+func isFloat64AnInteger(f float64) bool {
+
+	if math.IsNaN(f) || math.IsInf(f, 0) || f < min_json_float || f > max_json_float {
+		return false
 	}
+
+	return f == float64(int64(f)) || f == float64(uint64(f))
+}
+
+func mustBeInteger(what interface{}) *int {
+
+	var number int
+
+	if isKind(what, reflect.Float64) {
+
+		fnumber := what.(float64)
+
+		if isFloat64AnInteger(fnumber) {
+			number = int(fnumber)
+			return &number
+		} else {
+			return nil
+		}
+
+	} else if isKind(what, reflect.Int) {
+
+		number = what.(int)
+		return &number
+
+	}
+
+	return nil
+}
+
+func mustBeNumber(what interface{}) *float64 {
+
+	var number float64
+
+	if isKind(what, reflect.Float64) {
+
+		number = what.(float64)
+		return &number
+
+	} else if isKind(what, reflect.Int) {
+
+		number = float64(what.(int))
+		return &number
+
+	}
+
+	return nil
+
+}
+
+// formats a number so that it is displayed as the smallest string possible
+func resultErrorFormatNumber(n float64) string {
+
+	if isFloat64AnInteger(n) {
+		return fmt.Sprintf("%d", int64(n))
+	}
+
+	return fmt.Sprintf("%g", n)
+}
+
+func convertDocumentNode(val interface{}) interface{} {
+
+	if lval, ok := val.([]interface{}); ok {
+
+		res := []interface{}{}
+		for _, v := range lval {
+			res = append(res, convertDocumentNode(v))
+		}
+
+		return res
+
+	}
+
+	if mval, ok := val.(map[interface{}]interface{}); ok {
+
+		res := map[string]interface{}{}
+
+		for k, v := range mval {
+			res[k.(string)] = convertDocumentNode(v)
+		}
+
+		return res
+
+	}
+
+	return val
 }
