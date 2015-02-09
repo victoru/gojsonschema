@@ -295,7 +295,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 					case []string:
 						for _, dependOnKey := range dependency {
 							if _, dependencyResolved := currentNode.(map[string]interface{})[dependOnKey]; !dependencyResolved {
-								result.addError(context, currentNode, fmt.Sprintf(ERROR_MESSAGE_HAS_DEPENDENCY_ON, dependOnKey))
+								result.addError(newJsonContext(elementKey, context), currentNode, fmt.Sprintf(ERROR_MESSAGE_HAS_DEPENDENCY_ON, dependOnKey))
 							}
 						}
 
