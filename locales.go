@@ -40,67 +40,48 @@ const (
 
 	STRING_UNDEFINED = "undefined"
 
-	ERROR_MESSAGE_X_IS_NOT_A_VALID_TYPE = `%s is not a valid type`
-	ERROR_MESSAGE_X_TYPE_IS_DUPLICATED  = `%s type is duplicated`
+	ERROR_MESSAGE_X_IS_NOT_A_VALID_TYPE  = `%s is not a valid type`
+	ERROR_MESSAGE_X_TYPE_IS_DUPLICATED   = `%s type is duplicated`
+	ERROR_MESSAGE_X_MUST_BE_OF_TYPE_Y    = `%s must be of type %s`
+	ERROR_MESSAGE_X_MUST_BE_A_Y          = `%s must be of a %s`
+	ERROR_MESSAGE_X_MUST_BE_AN_Y         = `%s must be of an %s`
+	ERROR_MESSAGE_X_ITEMS_MUST_BE_UNIQUE = `%s items must be unique`
+	ERROR_MESSAGE_X_ITEMS_MUST_BE_TYPE_Y = `%s items must be %s`
 
-	ERROR_MESSAGE_X_MUST_BE_OF_TYPE_Y = `%s must be of type %s`
-
-	ERROR_MESSAGE_X_MUST_BE_A_Y  = `%s must be of a %s`
-	ERROR_MESSAGE_X_MUST_BE_AN_Y = `%s must be of an %s`
-
-	ERROR_MESSAGE_X_IS_MISSING_AND_REQUIRED  = `%s is missing and required`
-	ERROR_MESSAGE_MUST_BE_OF_TYPE_X          = `must be of type %s`
-	ERROR_MESSAGE_X_ITEMS_MUST_BE_UNIQUE     = `%s items must be unique`
-	ERROR_MESSAGE_X_ITEMS_MUST_BE_TYPE_Y     = `%s items must be %s`
-	ERROR_MESSAGE_DOES_NOT_MATCH_PATTERN     = `does not match pattern '%s'`
-	ERROR_MESSAGE_MUST_MATCH_ONE_ENUM_VALUES = `must match one of the enum values [%s]`
-
-	ERROR_MESSAGE_STRING_LENGTH_MUST_BE_GREATER_OR_EQUAL = `string length must be greater or equal to %d`
-	ERROR_MESSAGE_STRING_LENGTH_MUST_BE_LOWER_OR_EQUAL   = `string length must be lower or equal to %d`
-
-	ERROR_MESSAGE_NUMBER_MUST_BE_LOWER_OR_EQUAL   = `must be lower than or equal to %s`
-	ERROR_MESSAGE_NUMBER_MUST_BE_LOWER            = `must be lower than %s`
-	ERROR_MESSAGE_NUMBER_MUST_BE_GREATER_OR_EQUAL = `must be greater than or equal to %s`
-	ERROR_MESSAGE_NUMBER_MUST_BE_GREATER          = `must be greater than %s`
-
-	ERROR_MESSAGE_NUMBER_MUST_VALIDATE_ALLOF = `must validate all the schemas (allOf)`
-	ERROR_MESSAGE_NUMBER_MUST_VALIDATE_ONEOF = `must validate one and only one schema (oneOf)`
-	ERROR_MESSAGE_NUMBER_MUST_VALIDATE_ANYOF = `must validate at least one schema (anyOf)`
-	ERROR_MESSAGE_NUMBER_MUST_VALIDATE_NOT   = `must not validate the schema (not)`
-
-	ERROR_MESSAGE_ARRAY_MIN_ITEMS = `array must have at least %d items`
-	ERROR_MESSAGE_ARRAY_MAX_ITEMS = `array must have at the most %d items`
-
-	ERROR_MESSAGE_ARRAY_MIN_PROPERTIES = `must have at least %d properties`
-	ERROR_MESSAGE_ARRAY_MAX_PROPERTIES = `must have at the most %d properties`
-
-	ERROR_MESSAGE_HAS_DEPENDENCY_ON = `has a dependency on %s`
-
-	ERROR_MESSAGE_MULTIPLE_OF = `must be a multiple of %s`
-
-	ERROR_MESSAGE_ARRAY_NO_ADDITIONAL_ITEM = `no additional item allowed on array`
-
-	ERROR_MESSAGE_ADDITIONAL_PROPERTY_NOT_ALLOWED = `additional property "%s" is not allowed`
-	ERROR_MESSAGE_INVALID_PATTERN_PROPERTY        = `property "%s" does not match pattern %s`
-
-	ERROR_MESSAGE_INTERNAL = `internal error %s`
-
-	ERROR_MESSAGE_GET_HTTP_BAD_STATUS = `Could not read schema from HTTP, response status is %d`
+	invalidUniqueItemsErrorMessage        = KEY_UNIQUE_ITEMS // takes no extra args
+	invalidRequiredErrorMessage           = KEY_REQUIRED
+	invalidEnumErrorMessage               = KEY_ENUM + `.[%s]`
+	invalidTypeErrorMessage               = KEY_TYPE + `.%s` // [type1, type2, ...]
+	invalidNotErrorMessage                = KEY_NOT + `.%s`
+	invalidAllOfErrorMessage              = KEY_ALL_OF + `.%s` //`must validate all the schemas (allOf)`
+	invalidOneOfErrorMessage              = KEY_ONE_OF + `.%s`
+	invalidAnyOfErrorMessage              = KEY_ANY_OF + `.%s` //`must not validate the schema (not)`
+	invalidMinimumErrorMessage            = KEY_MINIMUM + `.%s`
+	invalidMaximumErrorMessage            = KEY_MAXIMUM + `.%s`
+	invalidExclusiveMinimumErrorMessage   = KEY_EXCLUSIVE_MINIMUM + `.%s`
+	invalidExclusiveMaximumErrorMessage   = KEY_EXCLUSIVE_MAXIMUM + `.%s`
+	invalidMultipleOfErrorMessage         = KEY_MULTIPLE_OF + `.%s`
+	invalidMinLengthErrorMessage          = KEY_MIN_LENGTH + `.%d`
+	invalidMaxLengthErrorMessage          = KEY_MAX_LENGTH + `.%d`
+	invalidPatternErrorMessage            = KEY_PATTERN + `.%s`
+	invalidMinItemsErrorMessage           = KEY_MIN_ITEMS + `.%d`
+	invalidMaxItemsErrorMessage           = KEY_MAX_ITEMS + `.%d`
+	invalidAdditionalItemsErrorMessage    = KEY_ADDITIONAL_ITEMS + `.%s`
+	invalidMinProperties                  = KEY_MIN_PROPERTIES + `.%d`
+	invalidMaxProperties                  = KEY_MAX_PROPERTIES + `.%d`
+	invalidDependencyErrorMessage         = KEY_DEPENDENCIES + `.%s`
+	invalidPatternPropertyErrorMessage    = KEY_PATTERN_PROPERTIES + `.%s`
+	invalidAdditionalPropertyErrorMessage = KEY_ADDITIONAL_PROPERTIES + `.%s`
 
 	ERROR_MESSAGE_NEW_SCHEMA_DOCUMENT_INVALID_ARGUMENT = `Invalid argument, must be a JSON string, a JSON reference string or a map[string]interface{}`
 
-	ERROR_MESSAGE_INVALID_REGEX_PATTERN = `Invalid regex pattern '%s'`
-	ERROR_MESSAGE_X_MUST_BE_VALID_REGEX = `%s must be a valid regex`
-
-	ERROR_MESSAGE_X_MUST_BE_GREATER_OR_TO_0 = `%s must be greater than or equal to 0`
-
-	ERROR_MESSAGE_X_CANNOT_BE_GREATER_THAN_Y = `%s cannot be greater than %s`
-
+	ERROR_MESSAGE_INTERNAL                          = `internal error %s`
+	ERROR_MESSAGE_GET_HTTP_BAD_STATUS               = `Could not read schema from HTTP, response status is %d`
+	ERROR_MESSAGE_INVALID_REGEX_PATTERN             = `Invalid regex pattern '%s'`
+	ERROR_MESSAGE_X_MUST_BE_VALID_REGEX             = `%s must be a valid regex`
+	ERROR_MESSAGE_X_MUST_BE_GREATER_OR_TO_0         = `%s must be greater than or equal to 0`
+	ERROR_MESSAGE_X_CANNOT_BE_GREATER_THAN_Y        = `%s cannot be greater than %s`
 	ERROR_MESSAGE_X_MUST_BE_STRICTLY_GREATER_THAN_0 = `%s must be strictly greater than 0`
-
-	ERROR_MESSAGE_X_CANNOT_BE_USED_WITHOUT_Y = `%s cannot be used without %s`
-
-	ERROR_MESSAGE_REFERENCE_X_MUST_BE_CANONICAL = `Reference %s must be canonical`
-
-	RESULT_ERROR_FORMAT = `%s, given %s` // description, value
+	ERROR_MESSAGE_X_CANNOT_BE_USED_WITHOUT_Y        = `%s cannot be used without %s`
+	ERROR_MESSAGE_REFERENCE_X_MUST_BE_CANONICAL     = `Reference %s must be canonical`
 )

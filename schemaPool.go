@@ -29,6 +29,7 @@ package gojsonschema
 import (
 	"errors"
 	"fmt"
+
 	"github.com/xeipuuv/gojsonreference"
 )
 

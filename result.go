@@ -27,6 +27,7 @@ package gojsonschema
 
 import (
 	"fmt"
+	"strings"
 )
 
 type ResultError struct {
@@ -36,28 +37,24 @@ type ResultError struct {
 }
 
 func (v ResultError) String() string {
-
-	// as a fallback, the value is displayed go style
-	valueString := fmt.Sprintf("%v", v.Value)
-
-	// marshal the go value value to json
-	if v.Value == nil {
-		valueString = TYPE_NULL
-	} else {
-		if v.Value == EmptyProperty {
-			return v.Description
-		}
-
-		if vs, err := marshalToJsonString(v.Value); err == nil {
-			if vs == nil {
-				valueString = TYPE_NULL
-			} else {
-				valueString = *vs
-			}
-		}
+	var t = []interface{}{v.Context.String()}
+	var s string = "%s: %s"
+	for _, ee := range strings.SplitN(v.Description, ".", 2) {
+		t = append(t, ee)
 	}
+	if t[2:] != nil {
+		s += "[%s]"
+	}
+	return fmt.Sprintf(s, t...)
+}
 
-	return fmt.Sprintf(RESULT_ERROR_FORMAT, v.Description, valueString)
+// List returns a list of or two items depending on the validation rule that failed.
+func (v ResultError) List() []interface{} {
+	var t []interface{}
+	for _, e := range strings.SplitN(strings.TrimRight(v.Description, "."), ".", 2) {
+		t = append(t, e)
+	}
+	return t
 }
 
 type Result struct {

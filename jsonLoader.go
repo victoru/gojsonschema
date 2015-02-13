@@ -30,10 +30,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/xeipuuv/gojsonreference"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/xeipuuv/gojsonreference"
 )
 
 // JSON loader interface
@@ -130,7 +131,7 @@ func (l *jsonReferenceLoader) loadFromHTTP(address string) (interface{}, error) 
 
 	// must return HTTP Status 200 OK
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf(ERROR_MESSAGE_GET_HTTP_BAD_STATUS, resp.Status))
+		return nil, errors.New(fmt.Sprintf(ERROR_MESSAGE_GET_HTTP_BAD_STATUS, resp.StatusCode))
 	}
 
 	bodyBuff, err := ioutil.ReadAll(resp.Body)

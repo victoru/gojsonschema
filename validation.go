@@ -92,7 +92,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 	if currentNode == nil {
 
 		if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_NULL) {
-			result.addError(context, currentNode, fmt.Sprintf(ERROR_MESSAGE_MUST_BE_OF_TYPE_X, currentSubSchema.types.String()))
+			result.addError(context, currentNode, fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()))
 			return
 		}
 
@@ -111,7 +111,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 		case reflect.Slice:
 
 			if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_ARRAY) {
-				result.addError(context, currentNode, fmt.Sprintf(ERROR_MESSAGE_MUST_BE_OF_TYPE_X, currentSubSchema.types.String()))
+				result.addError(context, currentNode, fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()))
 				return
 			}
 
@@ -126,7 +126,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 
 		case reflect.Map:
 			if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_OBJECT) {
-				result.addError(context, currentNode, fmt.Sprintf(ERROR_MESSAGE_MUST_BE_OF_TYPE_X, currentSubSchema.types.String()))
+				result.addError(context, currentNode, fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()))
 				return
 			}
 
@@ -153,7 +153,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 		case reflect.Bool:
 
 			if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_BOOLEAN) {
-				result.addError(context, currentNode, fmt.Sprintf(ERROR_MESSAGE_MUST_BE_OF_TYPE_X, currentSubSchema.types.String()))
+				result.addError(context, currentNode, fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()))
 				return
 			}
 
@@ -167,7 +167,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 		case reflect.String:
 
 			if currentSubSchema.types.IsTyped() && !currentSubSchema.types.Contains(TYPE_STRING) {
-				result.addError(context, currentNode, fmt.Sprintf(ERROR_MESSAGE_MUST_BE_OF_TYPE_X, currentSubSchema.types.String()))
+				result.addError(context, currentNode, fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()))
 				return
 			}
 
@@ -189,7 +189,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 			validType := currentSubSchema.types.Contains(TYPE_NUMBER) || (isInteger && currentSubSchema.types.Contains(TYPE_INTEGER))
 
 			if currentSubSchema.types.IsTyped() && !validType {
-				result.addError(context, currentNode, fmt.Sprintf(ERROR_MESSAGE_MUST_BE_OF_TYPE_X, currentSubSchema.types.String()))
+				result.addError(context, currentNode, fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()))
 				return
 			}
 
@@ -226,7 +226,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 		}
 		if !validatedAnyOf {
 
-			result.addError(context, currentNode, ERROR_MESSAGE_NUMBER_MUST_VALIDATE_ANYOF)
+			result.addError(context, currentNode, fmt.Sprintf(invalidAnyOfErrorMessage, currentSubSchema.anyOf))
 
 			if bestValidationResult != nil {
 				// add error messages of closest matching subSchema as
@@ -252,7 +252,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 
 		if nbValidated != 1 {
 
-			result.addError(context, currentNode, ERROR_MESSAGE_NUMBER_MUST_VALIDATE_ONEOF)
+			result.addError(context, currentNode, fmt.Sprintf(invalidOneOfErrorMessage, currentSubSchema.oneOf))
 
 			if nbValidated == 0 {
 				// add error messages of closest matching subSchema as
@@ -275,14 +275,15 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 		}
 
 		if nbValidated != len(currentSubSchema.allOf) {
-			result.addError(context, currentNode, ERROR_MESSAGE_NUMBER_MUST_VALIDATE_ALLOF)
+			//TODO: might be too big
+			result.addError(context, currentNode, fmt.Sprintf(invalidAllOfErrorMessage, currentSubSchema.allOf))
 		}
 	}
 
 	if currentSubSchema.not != nil {
 		validationResult := currentSubSchema.not.subValidateWithContext(currentNode, context)
 		if validationResult.Valid() {
-			result.addError(context, currentNode, ERROR_MESSAGE_NUMBER_MUST_VALIDATE_NOT)
+			result.addError(context, currentNode, fmt.Sprintf(invalidNotErrorMessage, currentSubSchema.not))
 		}
 	}
 
@@ -295,7 +296,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 					case []string:
 						for _, dependOnKey := range dependency {
 							if _, dependencyResolved := currentNode.(map[string]interface{})[dependOnKey]; !dependencyResolved {
-								result.addError(newJsonContext(elementKey, context), currentNode, fmt.Sprintf(ERROR_MESSAGE_HAS_DEPENDENCY_ON, dependOnKey))
+								result.addError(context, currentNode, fmt.Sprintf(invalidDependencyErrorMessage, dependOnKey))
 							}
 						}
 
@@ -323,7 +324,7 @@ func (v *subSchema) validateCommon(currentSubSchema *subSchema, value interface{
 			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_INTERNAL, err))
 		}
 		if !has {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_MUST_MATCH_ONE_ENUM_VALUES, strings.Join(currentSubSchema.enum, ",")))
+			result.addError(context, value, fmt.Sprintf(invalidEnumErrorMessage, strings.Join(currentSubSchema.enum, ",")))
 		}
 	}
 
@@ -360,7 +361,7 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 				switch currentSubSchema.additionalItems.(type) {
 				case bool:
 					if !currentSubSchema.additionalItems.(bool) {
-						result.addError(context, value, ERROR_MESSAGE_ARRAY_NO_ADDITIONAL_ITEM)
+						result.addError(context, value, fmt.Sprintf(invalidAdditionalItemsErrorMessage, false))
 					}
 				case *subSchema:
 					additionalItemSchema := currentSubSchema.additionalItems.(*subSchema)
@@ -377,12 +378,12 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 	// minItems & maxItems
 	if currentSubSchema.minItems != nil {
 		if nbItems < *currentSubSchema.minItems {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_ARRAY_MIN_ITEMS, *currentSubSchema.minItems))
+			result.addError(context, value, fmt.Sprintf(invalidMinItemsErrorMessage, *currentSubSchema.minItems))
 		}
 	}
 	if currentSubSchema.maxItems != nil {
 		if nbItems > *currentSubSchema.maxItems {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_ARRAY_MAX_ITEMS, *currentSubSchema.maxItems))
+			result.addError(context, value, fmt.Sprintf(invalidMaxItemsErrorMessage, *currentSubSchema.maxItems))
 		}
 	}
 
@@ -395,7 +396,7 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 				result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_INTERNAL, err))
 			}
 			if isStringInSlice(stringifiedItems, *vString) {
-				result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_X_ITEMS_MUST_BE_UNIQUE, TYPE_ARRAY))
+				result.addError(context, value, invalidUniqueItemsErrorMessage) //TODO: check if needed , TYPE_ARRAY)
 			}
 			stringifiedItems = append(stringifiedItems, *vString)
 		}
@@ -412,12 +413,12 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 	// minProperties & maxProperties:
 	if currentSubSchema.minProperties != nil {
 		if len(value) < *currentSubSchema.minProperties {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_ARRAY_MIN_PROPERTIES, *currentSubSchema.minProperties))
+			result.addError(context, value, fmt.Sprintf(invalidMinProperties, *currentSubSchema.minProperties))
 		}
 	}
 	if currentSubSchema.maxProperties != nil {
 		if len(value) > *currentSubSchema.maxProperties {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_ARRAY_MAX_PROPERTIES, *currentSubSchema.maxProperties))
+			result.addError(context, value, fmt.Sprintf(invalidMaxProperties, *currentSubSchema.maxProperties))
 		}
 	}
 
@@ -427,7 +428,7 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 		if ok {
 			result.incrementScore()
 		} else {
-			result.addError(newJsonContext(requiredProperty, context), EmptyProperty, fmt.Sprintf(ERROR_MESSAGE_X_IS_MISSING_AND_REQUIRED, fmt.Sprintf(`"%s" %s`, requiredProperty, STRING_PROPERTY)))
+			result.addError(newJsonContext(requiredProperty, context), EmptyProperty, invalidRequiredErrorMessage)
 		}
 	}
 
@@ -453,13 +454,13 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 					if found {
 
 						if pp_has && !pp_match {
-							result.addError(newJsonContext(pk, context), EmptyProperty, fmt.Sprintf(ERROR_MESSAGE_ADDITIONAL_PROPERTY_NOT_ALLOWED, pk))
+							result.addError(newJsonContext(pk, context), EmptyProperty, fmt.Sprintf(invalidAdditionalPropertyErrorMessage, pk))
 						}
 
 					} else {
 
 						if !pp_has || !pp_match {
-							result.addError(newJsonContext(pk, context), EmptyProperty, fmt.Sprintf(ERROR_MESSAGE_ADDITIONAL_PROPERTY_NOT_ALLOWED, pk))
+							result.addError(newJsonContext(pk, context), EmptyProperty, fmt.Sprintf(invalidAdditionalPropertyErrorMessage, pk))
 						}
 
 					}
@@ -506,7 +507,7 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 
 			if pp_has && !pp_match {
 
-				result.addError(newJsonContext(pk, context), value, fmt.Sprintf(ERROR_MESSAGE_INVALID_PATTERN_PROPERTY, pk, currentSubSchema.PatternPropertiesString()))
+				result.addError(newJsonContext(pk, context), value, fmt.Sprintf(invalidPatternPropertyErrorMessage, currentSubSchema.PatternPropertiesString()))
 			}
 
 		}
@@ -560,19 +561,19 @@ func (v *subSchema) validateString(currentSubSchema *subSchema, value interface{
 	// minLength & maxLength:
 	if currentSubSchema.minLength != nil {
 		if utf8.RuneCount([]byte(stringValue)) < *currentSubSchema.minLength {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_STRING_LENGTH_MUST_BE_GREATER_OR_EQUAL, *currentSubSchema.minLength))
+			result.addError(context, value, fmt.Sprintf(invalidMinLengthErrorMessage, *currentSubSchema.minLength))
 		}
 	}
 	if currentSubSchema.maxLength != nil {
 		if utf8.RuneCount([]byte(stringValue)) > *currentSubSchema.maxLength {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_STRING_LENGTH_MUST_BE_LOWER_OR_EQUAL, *currentSubSchema.maxLength))
+			result.addError(context, value, fmt.Sprintf(invalidMaxLengthErrorMessage, *currentSubSchema.maxLength))
 		}
 	}
 
 	// pattern:
 	if currentSubSchema.pattern != nil {
 		if !currentSubSchema.pattern.MatchString(stringValue) {
-			result.addError(context, value, fmt.Sprintf(ERROR_MESSAGE_DOES_NOT_MATCH_PATTERN, currentSubSchema.pattern))
+			result.addError(context, value, fmt.Sprintf(invalidPatternErrorMessage, currentSubSchema.pattern))
 
 		}
 	}
@@ -595,7 +596,7 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 	// multipleOf:
 	if currentSubSchema.multipleOf != nil {
 		if !isFloat64AnInteger(float64Value / *currentSubSchema.multipleOf) {
-			result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(ERROR_MESSAGE_MULTIPLE_OF, resultErrorFormatNumber(*currentSubSchema.multipleOf)))
+			result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(invalidMultipleOfErrorMessage, resultErrorFormatNumber(*currentSubSchema.multipleOf)))
 		}
 	}
 
@@ -603,11 +604,11 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 	if currentSubSchema.maximum != nil {
 		if currentSubSchema.exclusiveMaximum {
 			if float64Value >= *currentSubSchema.maximum {
-				result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(ERROR_MESSAGE_NUMBER_MUST_BE_LOWER_OR_EQUAL, resultErrorFormatNumber(*currentSubSchema.maximum)))
+				result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(invalidExclusiveMaximumErrorMessage, resultErrorFormatNumber(*currentSubSchema.maximum)))
 			}
 		} else {
 			if float64Value > *currentSubSchema.maximum {
-				result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(ERROR_MESSAGE_NUMBER_MUST_BE_LOWER, resultErrorFormatNumber(*currentSubSchema.maximum)))
+				result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(invalidMaximumErrorMessage, resultErrorFormatNumber(*currentSubSchema.maximum)))
 			}
 		}
 	}
@@ -616,11 +617,19 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 	if currentSubSchema.minimum != nil {
 		if currentSubSchema.exclusiveMinimum {
 			if float64Value <= *currentSubSchema.minimum {
-				result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(ERROR_MESSAGE_NUMBER_MUST_BE_GREATER_OR_EQUAL, resultErrorFormatNumber(*currentSubSchema.minimum)))
+				result.addError(
+					context,
+					resultErrorFormatNumber(float64Value),
+					fmt.Sprintf(invalidExclusiveMinimumErrorMessage,
+						resultErrorFormatNumber(*currentSubSchema.minimum)))
 			}
 		} else {
 			if float64Value < *currentSubSchema.minimum {
-				result.addError(context, resultErrorFormatNumber(float64Value), fmt.Sprintf(ERROR_MESSAGE_NUMBER_MUST_BE_GREATER, resultErrorFormatNumber(*currentSubSchema.minimum)))
+				result.addError(
+					context,
+					resultErrorFormatNumber(float64Value),
+					fmt.Sprintf(invalidMinimumErrorMessage,
+						resultErrorFormatNumber(*currentSubSchema.minimum)))
 			}
 		}
 	}

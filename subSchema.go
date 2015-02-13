@@ -29,9 +29,10 @@ package gojsonschema
 import (
 	"errors"
 	"fmt"
-	"github.com/xeipuuv/gojsonreference"
 	"regexp"
 	"strings"
+
+	"github.com/xeipuuv/gojsonreference"
 )
 
 const (

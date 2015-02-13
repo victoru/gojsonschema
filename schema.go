@@ -30,9 +30,10 @@ import (
 	//	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/xeipuuv/gojsonreference"
 	"reflect"
 	"regexp"
+
+	"github.com/xeipuuv/gojsonreference"
 )
 
 func NewSchema(l JSONLoader) (*Schema, error) {
