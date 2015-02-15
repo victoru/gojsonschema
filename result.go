@@ -42,8 +42,8 @@ func (v ResultError) String() string {
 	for _, ee := range strings.SplitN(v.Description, ".", 2) {
 		t = append(t, ee)
 	}
-	if t[2:] != nil {
-		s += "[%s]"
+	if len(t[2:]) != 0 {
+		s += "[%v]"
 	}
 	return fmt.Sprintf(s, t...)
 }
