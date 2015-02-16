@@ -26,7 +26,9 @@
 package gojsonschema
 
 import (
+	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -34,6 +36,9 @@ type ResultError struct {
 	Context     *jsonContext // Tree like notation of the part that failed the validation. ex (root).a.b ...
 	Description string       // A human readable error message
 	Value       interface{}  // Value given by the JSON file that is the source of the error
+
+	Attribute   string      //schema keyword responsible for this error
+	Requirement interface{} // the schema attribute's requirement that caused this error
 }
 
 func (v ResultError) String() string {
@@ -48,13 +53,22 @@ func (v ResultError) String() string {
 	return fmt.Sprintf(s, t...)
 }
 
-// List returns a list of or two items depending on the validation rule that failed.
-func (v ResultError) List() []interface{} {
-	var t []interface{}
-	for _, e := range strings.SplitN(strings.TrimRight(v.Description, "."), ".", 2) {
-		t = append(t, e)
+// sort by score descending
+type ResultsByScore []*Result
+
+func (r ResultsByScore) Len() int           { return len(r) }
+func (r ResultsByScore) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
+func (r ResultsByScore) Less(i, j int) bool { return r[i].score > r[j].score }
+
+// returns the best result based on the highest non repeating score.
+func getBestResult(results ResultsByScore) *Result {
+	if len(results) > 1 {
+		sort.Sort(results)
+		if results[0].score != results[1].score {
+			return results[0]
+		}
 	}
-	return t
+	return nil
 }
 
 type Result struct {
@@ -72,8 +86,22 @@ func (v *Result) Errors() []ResultError {
 	return v.errors
 }
 
-func (v *Result) addError(context *jsonContext, value interface{}, description string) {
-	v.errors = append(v.errors, ResultError{Context: context, Value: value, Description: description})
+//TODO: remove need for description. apps should handle their own descriptions
+func (v *Result) addError(
+	context *jsonContext,
+	attr string,
+	requirement interface{},
+	value interface{},
+	description string,
+) {
+	rerr := ResultError{
+		Context:     context,
+		Attribute:   attr,
+		Requirement: requirement,
+		Value:       value,
+		Description: description,
+	}
+	v.errors = append(v.errors, rerr)
 	v.score -= 2 // results in a net -1 when added to the +1 we get at the end of the validation function
 }
 
@@ -85,4 +113,26 @@ func (v *Result) mergeErrors(otherResult *Result) {
 
 func (v *Result) incrementScore() {
 	v.score++
+}
+
+func (v *Result) MarshalJSON() ([]byte, error) {
+	return ResultMarshalerFunc(v)
+}
+
+// ResultMarshalerFunc is the function used when json.Marshal is called on *Result.
+// Set as package variable to allow importing packages to override *Result's
+// default marshaling
+var ResultMarshalerFunc = func(res *Result) ([]byte, error) {
+	var jmap = make(map[string][]interface{})
+	for _, rerr := range res.Errors() {
+		var errStack []interface{}
+		errStack = append(errStack, rerr.Attribute)
+		if rerr.Requirement != nil {
+			errStack = append(errStack, rerr.Requirement)
+		}
+
+		jmap[rerr.Context.String()] = append(jmap[rerr.Context.String()], errStack)
+	}
+
+	return json.Marshal(jmap)
 }
