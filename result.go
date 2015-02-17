@@ -33,24 +33,21 @@ import (
 )
 
 type ResultError struct {
-	Context     *jsonContext // Tree like notation of the part that failed the validation. ex (root).a.b ...
-	Description string       // A human readable error message
-	Value       interface{}  // Value given by the JSON file that is the source of the error
+	Context *jsonContext // Tree like notation of the part that failed the validation. ex (root).a.b ...
+	Value   interface{}  // Value given by the JSON file that is the source of the error
 
 	Attribute   string      //schema keyword responsible for this error
 	Requirement interface{} // the schema attribute's requirement that caused this error
 }
 
 func (v ResultError) String() string {
-	var t = []interface{}{v.Context.String()}
-	var s string = "%s: %s"
-	for _, ee := range strings.SplitN(v.Description, ".", 2) {
-		t = append(t, ee)
+	var l []string
+	l = append(l, fmt.Sprintf("%s", v.Attribute))
+	if v.Requirement != nil {
+		l = append(l, fmt.Sprintf("%s", v.Requirement))
 	}
-	if len(t[2:]) != 0 {
-		s += "[%v]"
-	}
-	return fmt.Sprintf(s, t...)
+
+	return fmt.Sprintf("%s: %s", v.Context.String(), strings.Join(l, ","))
 }
 
 // sort by score descending
@@ -92,14 +89,12 @@ func (v *Result) addError(
 	attr string,
 	requirement interface{},
 	value interface{},
-	description string,
 ) {
 	rerr := ResultError{
 		Context:     context,
 		Attribute:   attr,
 		Requirement: requirement,
 		Value:       value,
-		Description: description,
 	}
 	v.errors = append(v.errors, rerr)
 	v.score -= 2 // results in a net -1 when added to the +1 we get at the end of the validation function

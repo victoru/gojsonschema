@@ -26,11 +26,9 @@
 package gojsonschema
 
 import (
-	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 	"unicode/utf8"
 )
 
@@ -97,7 +95,6 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 				KEY_TYPE,
 				currentSubSchema.types.String(),
 				currentNode,
-				fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()),
 			)
 			return
 		}
@@ -122,7 +119,6 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 					KEY_TYPE,
 					currentSubSchema.types.String(),
 					currentNode,
-					fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()),
 				)
 				return
 			}
@@ -143,7 +139,6 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 					KEY_TYPE,
 					currentSubSchema.types.String(),
 					currentNode,
-					fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()),
 				)
 				return
 			}
@@ -176,7 +171,6 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 					KEY_TYPE,
 					currentSubSchema.types.String(),
 					currentNode,
-					fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()),
 				)
 				return
 			}
@@ -196,7 +190,6 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 					KEY_TYPE,
 					currentSubSchema.types.String(),
 					currentNode,
-					fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()),
 				)
 				return
 			}
@@ -224,7 +217,6 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 					KEY_TYPE,
 					currentSubSchema.types.String(),
 					currentNode,
-					fmt.Sprintf(invalidTypeErrorMessage, currentSubSchema.types.String()),
 				)
 				return
 			}
@@ -269,7 +261,6 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 					KEY_ANY_OF,
 					marshalSubSchemas(currentSubSchema.anyOf),
 					currentNode,
-					fmt.Sprintf(invalidAnyOfErrorMessage, currentSubSchema.anyOf),
 				)
 			}
 		}
@@ -304,7 +295,6 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 					KEY_ONE_OF,
 					marshalSubSchemas(currentSubSchema.oneOf),
 					currentNode,
-					fmt.Sprintf(invalidOneOfErrorMessage, currentSubSchema.oneOf),
 				)
 			}
 		}
@@ -327,7 +317,6 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 				KEY_ALL_OF,
 				marshalSubSchemas(currentSubSchema.allOf),
 				currentNode,
-				fmt.Sprintf(invalidAllOfErrorMessage, currentSubSchema.allOf),
 			)
 		}
 	}
@@ -340,7 +329,6 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 				KEY_NOT,
 				marshalSubSchema(currentSubSchema.not),
 				currentNode,
-				fmt.Sprintf(invalidNotErrorMessage, currentSubSchema.not),
 			)
 		}
 	}
@@ -360,7 +348,6 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 									KEY_DEPENDENCIES,
 									dependency,
 									currentNode,
-									fmt.Sprintf(invalidDependencyErrorMessage, dependOnKey),
 								)
 							}
 						}
@@ -385,22 +372,19 @@ func (v *subSchema) validateCommon(currentSubSchema *subSchema, value interface{
 	// enum:
 	if len(currentSubSchema.enum) > 0 {
 		has, err := currentSubSchema.ContainsEnum(value)
-		if err != nil {
+		if err != nil { // caused from a bad value in JSON instance
 			result.addError(
 				context,
 				KEY_ENUM,
 				currentSubSchema.enum,
 				value,
-				fmt.Sprintf(ERROR_MESSAGE_INTERNAL, err),
 			)
-		}
-		if !has {
+		} else if !has {
 			result.addError(
 				context,
 				KEY_ENUM,
 				currentSubSchema.enum,
 				value,
-				fmt.Sprintf(invalidEnumErrorMessage, strings.Join(currentSubSchema.enum, ",")),
 			)
 		}
 	}
@@ -443,7 +427,6 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 							KEY_ADDITIONAL_ITEMS,
 							currentSubSchema.additionalItems,
 							value,
-							fmt.Sprintf(invalidAdditionalItemsErrorMessage, false),
 						)
 					}
 				case *subSchema:
@@ -467,7 +450,6 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 				KEY_MIN_ITEMS,
 				currentSubSchema.minItems,
 				value,
-				fmt.Sprintf(invalidMinItemsErrorMessage, *currentSubSchema.minItems),
 			)
 		}
 	}
@@ -478,7 +460,6 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 				KEY_MAX_ITEMS,
 				currentSubSchema.maxItems,
 				value,
-				fmt.Sprintf(invalidMaxItemsErrorMessage, *currentSubSchema.maxItems),
 			)
 		}
 	}
@@ -495,17 +476,14 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 					KEY_UNIQUE_ITEMS,
 					nil, // since the name is self explanatory and the requirement is subjective
 					value,
-					fmt.Sprintf(ERROR_MESSAGE_INTERNAL, err),
 				)
-			}
-			if isStringInSlice(stringifiedItems, *vString) {
+			} else if isStringInSlice(stringifiedItems, *vString) {
 				result.addError(
 					context,
 					KEY_UNIQUE_ITEMS,
 					nil,
 					value,
-					invalidUniqueItemsErrorMessage,
-				) //TODO: check if needed , TYPE_ARRAY)
+				)
 			}
 			stringifiedItems = append(stringifiedItems, *vString)
 		}
@@ -527,7 +505,6 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 				KEY_MIN_PROPERTIES,
 				currentSubSchema.minProperties,
 				value,
-				fmt.Sprintf(invalidMinProperties, *currentSubSchema.minProperties),
 			)
 		}
 	}
@@ -538,7 +515,6 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 				KEY_MAX_PROPERTIES,
 				currentSubSchema.maxProperties,
 				value,
-				fmt.Sprintf(invalidMaxProperties, *currentSubSchema.maxProperties),
 			)
 		}
 	}
@@ -554,7 +530,6 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 				KEY_REQUIRED,
 				nil, // self explanatory and subjective
 				EmptyProperty,
-				invalidRequiredErrorMessage,
 			)
 		}
 	}
@@ -586,7 +561,6 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 								KEY_ADDITIONAL_PROPERTIES,
 								currentSubSchema.patternProperties,
 								EmptyProperty,
-								fmt.Sprintf(invalidAdditionalPropertyErrorMessage, pk),
 							)
 						}
 
@@ -598,7 +572,6 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 								KEY_ADDITIONAL_PROPERTIES,
 								nil, //TODO: we should show additionalProperties and patternProperties here...
 								EmptyProperty,
-								fmt.Sprintf(invalidAdditionalPropertyErrorMessage, pk),
 							)
 						}
 					}
@@ -651,7 +624,6 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 					KEY_PATTERN_PROPERTIES,
 					currentSubSchema.patternProperties,
 					value,
-					fmt.Sprintf(invalidPatternPropertyErrorMessage, currentSubSchema.PatternPropertiesString()),
 				)
 			}
 
@@ -711,7 +683,6 @@ func (v *subSchema) validateString(currentSubSchema *subSchema, value interface{
 				KEY_MIN_LENGTH,
 				currentSubSchema.minLength,
 				value,
-				fmt.Sprintf(invalidMinLengthErrorMessage, *currentSubSchema.minLength),
 			)
 		}
 	}
@@ -722,7 +693,6 @@ func (v *subSchema) validateString(currentSubSchema *subSchema, value interface{
 				KEY_MAX_LENGTH,
 				currentSubSchema.maxLength,
 				value,
-				fmt.Sprintf(invalidMaxLengthErrorMessage, *currentSubSchema.maxLength),
 			)
 		}
 	}
@@ -735,7 +705,6 @@ func (v *subSchema) validateString(currentSubSchema *subSchema, value interface{
 				KEY_PATTERN,
 				currentSubSchema.pattern,
 				value,
-				fmt.Sprintf(invalidPatternErrorMessage, currentSubSchema.pattern),
 			)
 		}
 	}
@@ -763,7 +732,6 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 				KEY_MULTIPLE_OF,
 				currentSubSchema.multipleOf,
 				resultErrorFormatNumber(float64Value),
-				fmt.Sprintf(invalidMultipleOfErrorMessage, resultErrorFormatNumber(*currentSubSchema.multipleOf)),
 			)
 		}
 	}
@@ -777,7 +745,6 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 					KEY_EXCLUSIVE_MAXIMUM,
 					currentSubSchema.maximum,
 					resultErrorFormatNumber(float64Value),
-					fmt.Sprintf(invalidExclusiveMaximumErrorMessage, resultErrorFormatNumber(*currentSubSchema.maximum)),
 				)
 			}
 		} else {
@@ -787,7 +754,6 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 					KEY_MAXIMUM,
 					currentSubSchema.maximum,
 					resultErrorFormatNumber(float64Value),
-					fmt.Sprintf(invalidMaximumErrorMessage, resultErrorFormatNumber(*currentSubSchema.maximum)),
 				)
 			}
 		}
@@ -802,8 +768,7 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 					KEY_EXCLUSIVE_MINIMUM,
 					currentSubSchema.minimum,
 					resultErrorFormatNumber(float64Value),
-					fmt.Sprintf(invalidExclusiveMinimumErrorMessage,
-						resultErrorFormatNumber(*currentSubSchema.minimum)))
+				)
 			}
 		} else {
 			if float64Value < *currentSubSchema.minimum {
@@ -812,8 +777,6 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 					KEY_MINIMUM,
 					currentSubSchema.minimum,
 					resultErrorFormatNumber(float64Value),
-					fmt.Sprintf(invalidMinimumErrorMessage,
-						resultErrorFormatNumber(*currentSubSchema.minimum)),
 				)
 			}
 		}

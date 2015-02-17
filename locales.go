@@ -40,39 +40,13 @@ const (
 
 	STRING_UNDEFINED = "undefined"
 
-	ERROR_MESSAGE_X_IS_NOT_A_VALID_TYPE  = `%s is not a valid type`
-	ERROR_MESSAGE_X_TYPE_IS_DUPLICATED   = `%s type is duplicated`
-	ERROR_MESSAGE_X_MUST_BE_OF_TYPE_Y    = `%s must be of type %s`
-	ERROR_MESSAGE_X_MUST_BE_A_Y          = `%s must be of a %s`
-	ERROR_MESSAGE_X_MUST_BE_AN_Y         = `%s must be of an %s`
-	ERROR_MESSAGE_X_ITEMS_MUST_BE_UNIQUE = `%s items must be unique`
-	ERROR_MESSAGE_X_ITEMS_MUST_BE_TYPE_Y = `%s items must be %s`
-
-	invalidUniqueItemsErrorMessage        = KEY_UNIQUE_ITEMS // takes no extra args
-	invalidRequiredErrorMessage           = KEY_REQUIRED
-	invalidEnumErrorMessage               = KEY_ENUM + `.[%s]`
-	invalidTypeErrorMessage               = KEY_TYPE + `.%s` // [type1, type2, ...]
-	invalidNotErrorMessage                = KEY_NOT + `.%s`
-	invalidAllOfErrorMessage              = KEY_ALL_OF + `.%s` //`must validate all the schemas (allOf)`
-	invalidOneOfErrorMessage              = KEY_ONE_OF + `.%s`
-	invalidAnyOfErrorMessage              = KEY_ANY_OF + `.%s` //`must not validate the schema (not)`
-	invalidMinimumErrorMessage            = KEY_MINIMUM + `.%s`
-	invalidMaximumErrorMessage            = KEY_MAXIMUM + `.%s`
-	invalidExclusiveMinimumErrorMessage   = KEY_EXCLUSIVE_MINIMUM + `.%s`
-	invalidExclusiveMaximumErrorMessage   = KEY_EXCLUSIVE_MAXIMUM + `.%s`
-	invalidMultipleOfErrorMessage         = KEY_MULTIPLE_OF + `.%s`
-	invalidMinLengthErrorMessage          = KEY_MIN_LENGTH + `.%d`
-	invalidMaxLengthErrorMessage          = KEY_MAX_LENGTH + `.%d`
-	invalidPatternErrorMessage            = KEY_PATTERN + `.%s`
-	invalidMinItemsErrorMessage           = KEY_MIN_ITEMS + `.%d`
-	invalidMaxItemsErrorMessage           = KEY_MAX_ITEMS + `.%d`
-	invalidAdditionalItemsErrorMessage    = KEY_ADDITIONAL_ITEMS + `.%s`
-	invalidMinProperties                  = KEY_MIN_PROPERTIES + `.%d`
-	invalidMaxProperties                  = KEY_MAX_PROPERTIES + `.%d`
-	invalidDependencyErrorMessage         = KEY_DEPENDENCIES + `.%s`
-	invalidPatternPropertyErrorMessage    = KEY_PATTERN_PROPERTIES + `.%s`
-	invalidAdditionalPropertyErrorMessage = KEY_ADDITIONAL_PROPERTIES + `.%s`
-
+	ERROR_MESSAGE_X_IS_NOT_A_VALID_TYPE                = `%s is not a valid type`
+	ERROR_MESSAGE_X_TYPE_IS_DUPLICATED                 = `%s type is duplicated`
+	ERROR_MESSAGE_X_MUST_BE_OF_TYPE_Y                  = `%s must be of type %s`
+	ERROR_MESSAGE_X_MUST_BE_A_Y                        = `%s must be of a %s`
+	ERROR_MESSAGE_X_MUST_BE_AN_Y                       = `%s must be of an %s`
+	ERROR_MESSAGE_X_ITEMS_MUST_BE_UNIQUE               = `%s items must be unique`
+	ERROR_MESSAGE_X_ITEMS_MUST_BE_TYPE_Y               = `%s items must be %s`
 	ERROR_MESSAGE_NEW_SCHEMA_DOCUMENT_INVALID_ARGUMENT = `Invalid argument, must be a JSON string, a JSON reference string or a map[string]interface{}`
 
 	ERROR_MESSAGE_INTERNAL                          = `internal error %s`
