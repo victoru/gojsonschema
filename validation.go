@@ -703,7 +703,7 @@ func (v *subSchema) validateString(currentSubSchema *subSchema, value interface{
 			result.addError(
 				context,
 				KEY_PATTERN,
-				currentSubSchema.pattern,
+				currentSubSchema.pattern.String(),
 				value,
 			)
 		}
