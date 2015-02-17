@@ -267,7 +267,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 				result.addError(
 					context,
 					KEY_ANY_OF,
-					currentSubSchema.anyOf,
+					marshalSubSchemas(currentSubSchema.anyOf),
 					currentNode,
 					fmt.Sprintf(invalidAnyOfErrorMessage, currentSubSchema.anyOf),
 				)
@@ -302,7 +302,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 				result.addError(
 					context,
 					KEY_ONE_OF,
-					currentSubSchema.oneOf, //TODO: need some way to serialize this into JSON properly
+					marshalSubSchemas(currentSubSchema.oneOf),
 					currentNode,
 					fmt.Sprintf(invalidOneOfErrorMessage, currentSubSchema.oneOf),
 				)
@@ -325,7 +325,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 			result.addError(
 				context,
 				KEY_ALL_OF,
-				currentSubSchema.allOf,
+				marshalSubSchemas(currentSubSchema.allOf),
 				currentNode,
 				fmt.Sprintf(invalidAllOfErrorMessage, currentSubSchema.allOf),
 			)
@@ -338,7 +338,7 @@ func (v *subSchema) validateSchema(currentSubSchema *subSchema, currentNode inte
 			result.addError(
 				context,
 				KEY_NOT,
-				currentSubSchema.not,
+				marshalSubSchema(currentSubSchema.not),
 				currentNode,
 				fmt.Sprintf(invalidNotErrorMessage, currentSubSchema.not),
 			)
@@ -484,7 +484,7 @@ func (v *subSchema) validateArray(currentSubSchema *subSchema, value []interface
 	}
 
 	// uniqueItems:
-	if currentSubSchema.uniqueItems {
+	if currentSubSchema.uniqueItems != nil && *currentSubSchema.uniqueItems {
 		var stringifiedItems []string
 		for _, v := range value {
 			vString, err := marshalToJsonString(v)
@@ -583,10 +583,10 @@ func (v *subSchema) validateObject(currentSubSchema *subSchema, value map[string
 						if pp_has && !pp_match {
 							result.addError(
 								newJsonContext(pk, context),
-								KEY_PATTERN_PROPERTIES, // or KEY_ADDITIONAL_PROPERTIES?A
+								KEY_ADDITIONAL_PROPERTIES,
 								currentSubSchema.patternProperties,
 								EmptyProperty,
-								fmt.Sprintf(invalidPatternPropertyErrorMessage, pk),
+								fmt.Sprintf(invalidAdditionalPropertyErrorMessage, pk),
 							)
 						}
 
@@ -770,7 +770,7 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 
 	//maximum & exclusiveMaximum:
 	if currentSubSchema.maximum != nil {
-		if currentSubSchema.exclusiveMaximum {
+		if currentSubSchema.exclusiveMaximum != nil && *currentSubSchema.exclusiveMaximum {
 			if float64Value >= *currentSubSchema.maximum {
 				result.addError(
 					context,
@@ -795,7 +795,7 @@ func (v *subSchema) validateNumber(currentSubSchema *subSchema, value interface{
 
 	//minimum & exclusiveMinimum:
 	if currentSubSchema.minimum != nil {
-		if currentSubSchema.exclusiveMinimum {
+		if currentSubSchema.exclusiveMinimum != nil && *currentSubSchema.exclusiveMinimum {
 			if float64Value <= *currentSubSchema.minimum {
 				result.addError(
 					context,

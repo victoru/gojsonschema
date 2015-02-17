@@ -310,8 +310,10 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 			if currentSchema.minimum == nil {
 				return errors.New(fmt.Sprintf(ERROR_MESSAGE_X_CANNOT_BE_USED_WITHOUT_Y, KEY_EXCLUSIVE_MINIMUM, KEY_MINIMUM))
 			}
-			exclusiveMinimumValue := m[KEY_EXCLUSIVE_MINIMUM].(bool)
-			currentSchema.exclusiveMinimum = exclusiveMinimumValue
+			if mem := m[KEY_EXCLUSIVE_MINIMUM]; mem != nil {
+				exclusiveMinimumValue := mem.(bool)
+				currentSchema.exclusiveMinimum = &exclusiveMinimumValue
+			}
 		} else {
 			return errors.New(fmt.Sprintf(ERROR_MESSAGE_X_MUST_BE_A_Y, KEY_EXCLUSIVE_MINIMUM, TYPE_BOOLEAN))
 		}
@@ -330,8 +332,10 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 			if currentSchema.maximum == nil {
 				return errors.New(fmt.Sprintf(ERROR_MESSAGE_X_CANNOT_BE_USED_WITHOUT_Y, KEY_EXCLUSIVE_MAXIMUM, KEY_MAXIMUM))
 			}
-			exclusiveMaximumValue := m[KEY_EXCLUSIVE_MAXIMUM].(bool)
-			currentSchema.exclusiveMaximum = exclusiveMaximumValue
+			if mem := m[KEY_EXCLUSIVE_MAXIMUM]; mem != nil {
+				exclusiveMaximumValue := mem.(bool)
+				currentSchema.exclusiveMaximum = &exclusiveMaximumValue
+			}
 		} else {
 			return errors.New(fmt.Sprintf(ERROR_MESSAGE_X_MUST_BE_A_Y, KEY_EXCLUSIVE_MAXIMUM, STRING_NUMBER))
 		}
@@ -459,7 +463,10 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 
 	if existsMapKey(m, KEY_UNIQUE_ITEMS) {
 		if isKind(m[KEY_UNIQUE_ITEMS], reflect.Bool) {
-			currentSchema.uniqueItems = m[KEY_UNIQUE_ITEMS].(bool)
+			if mui := m[KEY_UNIQUE_ITEMS]; mui != nil {
+				uniqueItemsValue := mui.(bool)
+				currentSchema.uniqueItems = &uniqueItemsValue
+			}
 		} else {
 			return errors.New(fmt.Sprintf(ERROR_MESSAGE_X_MUST_BE_A_Y, KEY_UNIQUE_ITEMS, TYPE_BOOLEAN))
 		}

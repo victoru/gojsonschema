@@ -100,9 +100,9 @@ type subSchema struct {
 	// validation : number / integer
 	multipleOf       *float64
 	maximum          *float64
-	exclusiveMaximum bool
+	exclusiveMaximum *bool
 	minimum          *float64
-	exclusiveMinimum bool
+	exclusiveMinimum *bool
 
 	// validation : string
 	minLength *int
@@ -121,7 +121,7 @@ type subSchema struct {
 	// validation : array
 	minItems    *int
 	maxItems    *int
-	uniqueItems bool
+	uniqueItems *bool
 
 	additionalItems interface{}
 
@@ -133,6 +133,123 @@ type subSchema struct {
 	anyOf []*subSchema
 	allOf []*subSchema
 	not   *subSchema
+}
+
+func marshalSubSchemas(subschemaList []*subSchema) (subschemas []interface{}) {
+	for _, s := range subschemaList {
+		subschemas = append(subschemas, marshalSubSchema(s))
+	}
+	return
+}
+
+// marshalSubSchema marshals a subschema into JSON
+func marshalSubSchema(s *subSchema) interface{} {
+	m := map[string]interface{}{
+		"type": s.types.String(),
+	}
+
+	if s.types.Contains(TYPE_OBJECT) {
+		if len(s.propertiesChildren) != 0 {
+			p := make(map[string]interface{})
+			for _, ss := range s.propertiesChildren {
+				p[ss.property] = marshalSubSchema(ss)
+			}
+			m["properties"] = p
+		}
+
+		if s.minProperties != nil {
+			m["minProperties"] = s.minProperties
+		}
+
+		if s.maxProperties != nil {
+			m["maxProperties"] = s.maxProperties
+		}
+
+		if s.additionalProperties != nil {
+			if ss, ok := s.additionalProperties.(*subSchema); ok {
+				m["additionalProperties"] = marshalSubSchema(ss)
+			} else {
+				m["additionalProperties"] = s.additionalProperties
+			}
+		}
+
+		if s.dependencies != nil {
+			if ss, ok := s.additionalProperties.(*subSchema); ok {
+				m["dependencies"] = marshalSubSchema(ss)
+			} else {
+				m["dependencies"] = s.dependencies
+			}
+		}
+
+		if len(s.required) != 0 {
+			m["required"] = s.required
+		}
+	}
+
+	if s.types.Contains(TYPE_ARRAY) {
+		if len(s.itemsChildren) != 0 {
+			var items []interface{}
+			for _, si := range s.itemsChildren {
+				items = append(items, marshalSubSchema(si))
+			}
+			m["items"] = items
+		}
+
+		if s.minItems != nil {
+			m["minItems"] = s.minItems
+		}
+		if s.maxItems != nil {
+			m["maxItems"] = s.maxItems
+		}
+
+		if s.additionalItems != nil {
+			m["additionalItems"] = s.additionalItems
+		}
+
+		if s.uniqueItems != nil {
+			m["uniqueItems"] = s.uniqueItems
+		}
+	}
+
+	if s.types.Contains(TYPE_STRING) {
+		if s.minLength != nil {
+			m["minLength"] = s.minLength
+		}
+		if s.maxLength != nil {
+			m["maxLength"] = s.maxLength
+		}
+		if s.pattern != nil {
+			m["pattern"] = s.pattern.String()
+		}
+	}
+
+	if s.types.Contains(TYPE_INTEGER) || s.types.Contains(TYPE_NUMBER) {
+		if s.multipleOf != nil {
+			m["multipleOf"] = s.multipleOf
+		}
+
+		if s.maximum != nil {
+			m["maximum"] = s.maximum
+		}
+
+		if s.exclusiveMaximum != nil {
+			m["exclusiveMaximum"] = s.exclusiveMaximum
+		}
+
+		if s.minimum != nil {
+			m["minimum"] = s.minimum
+		}
+
+		if s.exclusiveMinimum != nil {
+			m["exclusiveMinimum"] = s.exclusiveMinimum
+		}
+	}
+
+	if s.enum != nil {
+		m["enum"] = s.enum
+	}
+
+	return m
 }
 
 func (s *subSchema) AddEnum(i interface{}) error {
