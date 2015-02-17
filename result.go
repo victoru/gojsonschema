@@ -33,16 +33,16 @@ import (
 )
 
 type ResultError struct {
-	Context *jsonContext // Tree like notation of the part that failed the validation. ex (root).a.b ...
+	Context *JSONContext // Tree like notation of the part that failed the validation. ex (root).a.b ...
 	Value   interface{}  // Value given by the JSON file that is the source of the error
 
-	Attribute   string      //schema keyword responsible for this error
+	Reason      string      //JSON schema keyword responsible for this error
 	Requirement interface{} // the schema attribute's requirement that caused this error
 }
 
 func (v ResultError) String() string {
 	var l []string
-	l = append(l, fmt.Sprintf("%s", v.Attribute))
+	l = append(l, fmt.Sprintf("%s", v.Reason))
 	if v.Requirement != nil {
 		l = append(l, fmt.Sprintf("%s", v.Requirement))
 	}
@@ -51,14 +51,14 @@ func (v ResultError) String() string {
 }
 
 // sort by score descending
-type ResultsByScore []*Result
+type resultsByScore []*Result
 
-func (r ResultsByScore) Len() int           { return len(r) }
-func (r ResultsByScore) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
-func (r ResultsByScore) Less(i, j int) bool { return r[i].score > r[j].score }
+func (r resultsByScore) Len() int           { return len(r) }
+func (r resultsByScore) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
+func (r resultsByScore) Less(i, j int) bool { return r[i].score > r[j].score }
 
 // returns the best result based on the highest non repeating score.
-func getBestResult(results ResultsByScore) *Result {
+func getBestResult(results resultsByScore) *Result {
 	if len(results) > 1 {
 		sort.Sort(results)
 		if results[0].score != results[1].score {
@@ -83,16 +83,17 @@ func (v *Result) Errors() []ResultError {
 	return v.errors
 }
 
-//TODO: remove need for description. apps should handle their own descriptions
-func (v *Result) addError(
-	context *jsonContext,
-	attr string,
+// AddError adds a context JSON schema error to Result using the failing schema
+// attribute as the reason
+func (v *Result) AddError(
+	context *JSONContext,
+	reason string,
 	requirement interface{},
 	value interface{},
 ) {
 	rerr := ResultError{
 		Context:     context,
-		Attribute:   attr,
+		Reason:      reason,
 		Requirement: requirement,
 		Value:       value,
 	}
@@ -121,7 +122,7 @@ var ResultMarshalerFunc = func(res *Result) ([]byte, error) {
 	var jmap = make(map[string][]interface{})
 	for _, rerr := range res.Errors() {
 		var errStack []interface{}
-		errStack = append(errStack, rerr.Attribute)
+		errStack = append(errStack, rerr.Reason)
 		if rerr.Requirement != nil {
 			errStack = append(errStack, rerr.Requirement)
 		}

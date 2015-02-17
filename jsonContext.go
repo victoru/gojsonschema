@@ -26,20 +26,20 @@ package gojsonschema
 
 import "bytes"
 
-// jsonContext implements a persistent linked-list of strings
-type jsonContext struct {
+// JSONContext implements a persistent linked-list of strings
+type JSONContext struct {
 	head string
-	tail *jsonContext
+	tail *JSONContext
 }
 
-func newJsonContext(head string, tail *jsonContext) *jsonContext {
-	return &jsonContext{head, tail}
+func NewJSONContext(head string, tail *JSONContext) *JSONContext {
+	return &JSONContext{head, tail}
 }
 
 // String displays the context in reverse.
 // This plays well with the data structure's persistent nature with
 // Cons and a json document's tree structure.
-func (c *jsonContext) String() string {
+func (c *JSONContext) String() string {
 	byteArr := make([]byte, 0, c.stringLen())
 	buf := bytes.NewBuffer(byteArr)
 	c.writeStringToBuffer(buf)
@@ -47,7 +47,7 @@ func (c *jsonContext) String() string {
 	return buf.String()
 }
 
-func (c *jsonContext) stringLen() int {
+func (c *JSONContext) stringLen() int {
 	length := 0
 	if c.tail != nil {
 		length = c.tail.stringLen() + 1 // add 1 for "."
@@ -57,7 +57,7 @@ func (c *jsonContext) stringLen() int {
 	return length
 }
 
-func (c *jsonContext) writeStringToBuffer(buf *bytes.Buffer) {
+func (c *JSONContext) writeStringToBuffer(buf *bytes.Buffer) {
 	if c.tail != nil {
 		c.tail.writeStringToBuffer(buf)
 		buf.WriteString("/")
