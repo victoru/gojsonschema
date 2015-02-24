@@ -27,7 +27,7 @@
 package gojsonschema
 
 import (
-	//	"encoding/json"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -697,7 +697,7 @@ func (d *Schema) Unmarshal(data []byte, v interface{}) error {
 	if !res.Valid() {
 		return res.Errors()
 	}
-	return nil
+	return json.Unmarshal(data, v)
 }
 
 // Unmarshaler is the interface implemented by objects that can unmarshal a JSON
