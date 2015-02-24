@@ -680,3 +680,28 @@ func (d *Schema) parseDependencies(documentNode interface{}, currentSchema *subS
 
 	return nil
 }
+
+// Unmarshal parses the JSON data according to its internal JSON schema and
+// stores the result in the value pointed to by v
+func (d *Schema) Unmarshal(data []byte, v interface{}) error {
+	//TODO: could be better
+	if s, ok := v.(Unmarshaler); ok {
+		return s.SchemaUnmarshalJSON(data)
+	}
+
+	res, err := d.Validate(NewStringLoader(string(data)))
+	if err != nil {
+		return err
+	}
+
+	if !res.Valid() {
+		return res.Errors()
+	}
+	return nil
+}
+
+// Unmarshaler is the interface implemented by objects that can unmarshal a JSON
+// description of themselves while adhering to an internal JSON schema.
+type Unmarshaler interface {
+	SchemaUnmarshalJSON(data []byte) error
+}
