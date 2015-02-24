@@ -79,7 +79,7 @@ func (v *Result) Valid() bool {
 	return len(v.errors) == 0
 }
 
-func (v *Result) Errors() []ResultError {
+func (v *Result) Errors() ResultErrors {
 	return v.errors
 }
 
@@ -111,24 +111,34 @@ func (v *Result) incrementScore() {
 	v.score++
 }
 
-func (v *Result) MarshalJSON() ([]byte, error) {
-	return ResultMarshalerFunc(v)
+// ResultErrors is a collection of JSON schema errors
+type ResultErrors []ResultError
+
+func (rerrs ResultErrors) Error() string {
+	return fmt.Sprintf("%d fields with validation error(s)", len(rerrs))
 }
 
-// ResultMarshalerFunc is the function used when json.Marshal is called on *Result.
-// Set as package variable to allow importing packages to override *Result's
-// default marshaling
-var ResultMarshalerFunc = func(res *Result) ([]byte, error) {
+// Map parses ResultErrors into a map object for simpler error parsing/handling
+func (rerrs ResultErrors) Map() map[string][]interface{} {
 	var jmap = make(map[string][]interface{})
-	for _, rerr := range res.Errors() {
-		var errStack []interface{}
-		errStack = append(errStack, rerr.Reason)
+	for _, rerr := range rerrs {
+		var errStack = []interface{}{rerr.Reason}
 		if rerr.Requirement != nil {
 			errStack = append(errStack, rerr.Requirement)
 		}
 
 		jmap[rerr.Context.String()] = append(jmap[rerr.Context.String()], errStack)
 	}
+	return jmap
+}
 
-	return json.Marshal(jmap)
+func (rerrs ResultErrors) MarshalJSON() ([]byte, error) {
+	return json.Marshal(rerrs.Map())
+}
+
+// ResultErrorsMarshalerFunc is the function used when json.Marshal is called
+// on ResultErrors. It's been set as package variable to allow importing packages
+// to alter the default behavior when marshaling ResultErrors.
+var ResultErrorsMarshalerFunc = func(rerrs ResultErrors) ([]byte, error) {
+	return json.Marshal(rerrs.Map())
 }
